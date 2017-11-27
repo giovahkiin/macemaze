@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 using namespace std;
+using namespace sf;
 
 // DEFINES
 #define WIDTH 800
@@ -25,11 +26,37 @@ bool keyLeftPressed = false;
 bool keyRightPressed = false;
 bool keyMenuPressed = false;
 
+CircleShape circ[9999];
+
+int amt;
+
+
+
+
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Maze");
     window.setFramerateLimit(FPS);
     window.setActive(false);
+    window.setKeyRepeatEnabled(false);
+
+    
+    cout << "How many circles u want fam" << endl;
+    cin >> amt;
+    for(int i = 0; i < amt; i++){
+        int radius;
+        int xpos;
+        int ypos;       
+        cout << "Radius of circle number " << i+1 << endl;
+        cin >> radius;
+        circ[i].setRadius(radius);
+        circ[i].setOrigin(radius,radius);
+        cout << "Position of circle number " << i+1 << endl;
+        cin >> xpos >> ypos;
+        circ[i].setPosition(xpos,ypos);
+        circ[i].setFillColor(Color::Magenta);
+        }
+
 
     while (window.isOpen())
     {
@@ -65,7 +92,15 @@ int main()
                     keyMenuPressed = false;
             }
         }
-        window.clear(sf::Color::Black);
+
+        
+
+
+        
+        window.clear(Color::Black);
+        for(int i= 0;i < amt;i++){
+            window.draw(circ[i]);
+        }
         window.display();
     }
     return 0;
