@@ -12,9 +12,13 @@ using namespace sf;
 #define FPS 60.f
 #define TIMESTEP 1.f / FPS
 #define PRADIUS 20
-#define PElas 0.25;
-#define MElas 1;
-
+#define MRADIUS 15
+#define PElas 0
+#define MElas 1
+#define PMASS 1.f/ 1.f
+#define MMASS 1.f/10.f 
+#define FRICTION 0.2f * TIMESTEP
+#define MAXSPEED 500.f
 // keybindings
 #define keyUp sf::Keyboard::W
 #define keyDown sf::Keyboard::S
@@ -30,11 +34,11 @@ bool keyRightPressed = false;
 bool keyMenuPressed = false;
 
 CircleShape circ[9999];
-CircleShape player;
 
-int amt,mass[2],force[2];
-float pelas = PElas;
-Vector2f acc[2], vel[2], pos[2];
+int hitcount[9999];
+float amt,mass[9999],force[2],elas[2];
+
+Vector2f acc[2], vel[9999], pos[9999];
 
 
 
@@ -47,10 +51,10 @@ int main()
     window.setActive(false);
     window.setKeyRepeatEnabled(false);
 
-    
-    cout << "How many circles u want fam" << endl;
+    //input for targets    
+    cout << "How many targets?" << endl;
     cin >> amt;
-    for(int i = 0; i < amt; i++){
+    for(int i = 2; i < amt + 2; i++){
         int radius;
         int xpos;
         int ypos;       
@@ -62,15 +66,26 @@ int main()
         cin >> xpos >> ypos;
         circ[i].setPosition(xpos,ypos);
         circ[i].setFillColor(Color::Magenta);
+        mass[i] = 1/1000.f;
+        vel[i] = Vector2f(0.f,0.f);
         }
-    player.setRadius(PRADIUS);
-    player.setOrigin(15,15);
-    player.setPosition(100,500);
-    player.setFillColor(Color::Blue);
-    mass[0] = 1;
+    //player values
+    circ[0].setRadius(PRADIUS);
+    circ[0].setOrigin(PRADIUS,PRADIUS);
+    circ[0].setPosition(100,500);
+    circ[0].setFillColor(Color::Blue);
+    mass[0] = PMASS;
     force[0] = 100;
+    elas[0] = PElas ;
 
-
+    //mace values
+    circ[1].setRadius(MRADIUS);
+    circ[1].setOrigin(MRADIUS,MRADIUS);
+    circ[1].setPosition(80,550);
+    circ[1].setFillColor(Color::Red);
+    mass[1] = MMASS;
+    force[1] = 800;
+    elas[1] = MElas;
     while (window.isOpen())
     {
         sf::Event event;
@@ -107,69 +122,107 @@ int main()
             {
                 if (event.key.code == keyUp){
                     keyUpPressed = false;
-                    vel[0].y = 0;
+                    //vel[0].y = 0;
                 }
                 if (event.key.code == keyDown){
                     keyDownPressed = false;
-                    vel[0].y = 0;
+                    //vel[0].y = 0;
                 }
                 if (event.key.code == keyLeft){
                     keyLeftPressed = false;
-                    vel[0].x = 0;
+                    //vel[0].x = 0;
                 }
                 if (event.key.code == keyRight){
                     keyRightPressed = false;
-                    vel[0].x = 0;
+                    //vel[0].x = 0;
                 }
                 if (event.key.code == keyMenu)
                     keyMenuPressed = false;
             }
         }
 
-        if (keyUpPressed)player.move(0,-200 * TIMESTEP);
-        if (keyDownPressed)player.move(0,200 * TIMESTEP);
-        if (keyLeftPressed)player.move(-200 * TIMESTEP,0);
-        if (keyRightPressed)player.move(200 * TIMESTEP,0);
+        if (keyUpPressed)vel[0].y = -350;//circ[0].move(0,-350 * TIMESTEP);
+        if (keyDownPressed)vel[0].y = 350;//circ[0].move(0,350 * TIMESTEP);
+        if (keyLeftPressed)vel[0].x = -350;//circ[0].move(-350 * TIMESTEP,0);
+        if (keyRightPressed)vel[0].x = 350;//circ[0].move(350 * TIMESTEP,0);
         
+        if(keyRightPressed == false && keyLeftPressed == false) vel[0].x = 0;
+        if(keyUpPressed == false && keyDownPressed == false) vel[0].y = 0;
 
+        circ[0].move(vel[0] * TIMESTEP);
 
         
-    vel[0] = vel[0] + (acc[0] * TIMESTEP);
-    pos[0] = player.getPosition();
-    pos[0] = pos[0] + (0.5f * acc[0] * TIMESTEP * TIMESTEP) + (vel[0] * TIMESTEP);
-    player.setPosition(pos[0]);
+    //vel[0] = vel[0] + (acc[0] * TIMESTEP);
+    //pos[0] = circ[0].getPosition();
+    //pos[0] = pos[0] + (0.5f * acc[0] * TIMESTEP * TIMESTEP) + (vel[0] * TIMESTEP);
+    //circ[0].setPosition(pos[0]);
     
+    //mace movement
+    Vector2f direction = Vector2f( circ[0].getPosition() - circ[1].getPosition()  );
+    float magnitude = sqrt((direction.x * direction.x) + (direction.y * direction.y));
+    Vector2f unitVector(direction.x / magnitude, direction.y / magnitude);
+    acc[1].x = unitVector.x * 15.f *force[1] * mass[1];
+    acc[1].y = unitVector.y * 15.f * force[1] * mass[1];
+    vel[1] = (vel[1] + (acc[1] * TIMESTEP)) - ( ( FRICTION * vel[1] ) / mass[1] );
+    circ[1].move((0.5f * acc[1] * TIMESTEP * TIMESTEP) + (vel[1] * TIMESTEP));
 
+    //balls collision detection
+    
+    for( int i = 0; i < 2; i++){
+        for(int j = 0; j < amt + 2;j++){
+            if(i!=j && i ==1 ){
+              float dx =  circ[i].getPosition().x - circ[j].getPosition().x;
+              float dy =  circ[i].getPosition().y - circ[j].getPosition().y;
+              Vector2f normVec(dx,dy);
+              Vector2f unitVec(normVec/sqrt((dx * dx) + ( dy *dy )));
+              Vector2f unitTan(-unitVec.y,unitVec.x);
+              float radii = circ[j].getRadius() + circ[i].getRadius();
+              if ( (dx * dx) + (dy * dy) < radii * radii){
+               pos[i] = circ[i].getPosition();
+               //pos[j] = circ[j].getPosition();
+               vel[i] = vel[i] - 2 * ((vel[i].x * unitVec.x) + (vel[i].y * unitVec.y)) * unitVec;
+              // vel[j] = vel[j] - 2 * ((vel[j].x * unitVec.x) + (vel[j].y * unitVec.y)) * unitVec;
+               hitcount[j] += 1;
+               cout << "Circle " << j << " has been hit " << hitcount[j] << " times." << endl;
+              circ[i].setPosition(pos[i]);
+            //circ[j].setPosition(pos[j]);
 
-    pos[0] = player.getPosition();
-        //elasticity
-        if ( pos[0].y  < -5.f + PRADIUS ){   
-            pos[0].y = -4.f + PRADIUS;
-            vel[0].y = -pelas * vel[0].y;
-            player.setPosition( pos[0] );
+              }
             }
-        if (pos[0].y > HEIGHT - PRADIUS - 5.f){
-            pos[0].y = HEIGHT - PRADIUS - 4.f;
-            vel[0].y = -pelas * vel[0].y;
-            player.setPosition( pos[0] );
+        }    
+    }
+  
+
+    //sides collision
+    for( int i = 0; i < 2; i++){
+    pos[i] = circ[i].getPosition();
+        //elasticity
+        if ( pos[i].y  <  circ[i].getRadius() ){   
+            pos[i].y = circ[i].getRadius();
+            vel[i].y = -elas[i] * vel[i].y;
+            circ[i].setPosition( pos[i] );
+            }
+        if (pos[i].y > HEIGHT - circ[i].getRadius() - 1.f){
+            pos[i].y = HEIGHT - circ[i].getRadius() - 1.f;
+            vel[i].y = -elas[i] * vel[i].y;
+            circ[i].setPosition( pos[i] );
         }
-        if ( pos[0].x < -5.f + PRADIUS ){
-            pos[0].x = -4.f + PRADIUS;
-            vel[0].x = -pelas * vel[0].x;
-            player.setPosition( pos[0] );
+        if ( pos[i].x < circ[i].getRadius() ){
+            pos[i].x = circ[i].getRadius();
+            vel[i].x = -elas[i] * vel[i].x;
+            circ[i].setPosition( pos[i] );
         }
 
-        if(pos[0].x  > WIDTH - PRADIUS -5.f ){
-            pos[0].x = WIDTH - PRADIUS -4.f;
-            vel[0].x = -pelas * vel[0].x;
-            player.setPosition( pos[0] );
+        if(pos[i].x  > WIDTH - circ[i].getRadius() -1.f ){
+            pos[i].x = WIDTH - circ[i].getRadius() -1.f;
+            vel[i].x = -elas[i] * vel[i].x;
+            circ[i].setPosition( pos[i] );
         }
-        
+    }
         window.clear(Color::Black);
-        for(int i= 0;i < amt;i++){
-            window.draw(player);
+        for(int i= 0;i < amt + 2;i++){
+            window.draw(circ[i]);
         }
-        window.draw(player);
         window.display();
     }
     return 0;
