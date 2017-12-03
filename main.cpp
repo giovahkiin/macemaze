@@ -212,14 +212,13 @@ int main()
                vel[i] = vel[i] - 2 * ((vel[i].x * unitVec.x) + (vel[i].y * unitVec.y)) * unitVec;
               // vel[j] = vel[j] - 2 * ((vel[j].x * unitVec.x) + (vel[j].y * unitVec.y)) * unitVec;
                hitcount[j] += 1;
-			   float newRadius = (circ[j].getRadius() - 50)
-			   if (hitcount[j] % 3 = 0){
-				   circ[j].setRadius(newRadius);
-			   }
                cout << "Circle " << j << " has been hit " << hitcount[j] << " times." << endl;
               circ[i].setPosition(pos[i]);
             //circ[j].setPosition(pos[j]);
-
+			float newRadius = (circ[j].getRadius() - 10);
+			   if (hitcount[j] % 3 == 0){
+				   circ[j].setRadius(newRadius);
+			   }
               }
             }
         }    
