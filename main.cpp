@@ -34,7 +34,7 @@ bool keyRightPressed = false;
 bool keyMenuPressed = false;
 
 CircleShape circ[9999];
-
+sf::Texture gameTextures[11];
 int hitcount[9999];
 float amt,mass[9999],force[2],elas[2];
 
@@ -51,29 +51,52 @@ int main()
     window.setActive(false);
     window.setKeyRepeatEnabled(false);
 
-    //input for targets    
-    cout << "How many targets?" << endl;
-    cin >> amt;
-    for(int i = 2; i < amt + 2; i++){
-        int radius;
-        int xpos;
-        int ypos;       
-        cout << "Radius of circle number " << i+1 << endl;
-        cin >> radius;
-        circ[i].setRadius(radius);
-        circ[i].setOrigin(radius,radius);
-        cout << "Position of circle number " << i+1 << endl;
-        cin >> xpos >> ypos;
-        circ[i].setPosition(xpos,ypos);
-        circ[i].setFillColor(Color::Magenta);
-        mass[i] = 1/1000.f;
-        vel[i] = Vector2f(0.f,0.f);
+    // loading textures
+    cout << "Loading textures..." << endl;
+    if (!gameTextures[0].loadFromFile("gfx/testbgsmall.jpg"));
+    // 1 -- menubg?
+    // 2 -- gameover
+    if (!gameTextures[3].loadFromFile("gfx/santa.png"));
+    // 4 -- mace
+    if (!gameTextures[5].loadFromFile("gfx/ball1.png"));
+    if (!gameTextures[6].loadFromFile("gfx/ball2.png"));
+    if (!gameTextures[7].loadFromFile("gfx/ball3.png"));
+    if (!gameTextures[8].loadFromFile("gfx/ball4.png"));
+    if (!gameTextures[9].loadFromFile("gfx/ball5.png"));
+    if (!gameTextures[10].loadFromFile("gfx/ball6.png"));
+    for (int i = 0; i < 10; i++) gameTextures[i].setSmooth(true);
+
+    sf::Sprite background(gameTextures[0]);
+
+        //input for targets
+        cout << "How many targets?" << endl;
+        cin >> amt;
+        int tempRand = 5;
+        for(int i = 2; i < amt + 2; i++){
+            int radius;
+            int xpos;
+            int ypos;       
+            cout << "Radius of circle number " << i+1 << endl;
+            cin >> radius;
+            circ[i].setRadius(radius);
+            circ[i].setOrigin(radius,radius);
+            cout << "Position of circle number " << i+1 << endl;
+            cin >> xpos >> ypos;
+            circ[i].setPosition(xpos,ypos);
+            // circ[i].setFillColor(Color::Magenta);
+            mass[i] = 1/1000.f;
+            vel[i] = Vector2f(0.f,0.f);
+            // random texture
+            circ[i].setTexture(&gameTextures[tempRand]);
+            if (tempRand == 10) tempRand = 5;
+            else tempRand++;
         }
     //player values
     circ[0].setRadius(PRADIUS);
     circ[0].setOrigin(PRADIUS,PRADIUS);
     circ[0].setPosition(100,500);
-    circ[0].setFillColor(Color::Blue);
+    // circ[0].setFillColor(Color::Blue);
+    circ[0].setTexture(&gameTextures[3]);
     mass[0] = PMASS;
     force[0] = 100;
     elas[0] = PElas ;
@@ -139,6 +162,12 @@ int main()
                 if (event.key.code == keyMenu)
                     keyMenuPressed = false;
             }
+        }
+
+        if (keyMenuPressed)
+        {
+            keyMenuPressed = false;
+            window.close();
         }
 
         if (keyUpPressed)vel[0].y = -350;//circ[0].move(0,-350 * TIMESTEP);
@@ -220,6 +249,7 @@ int main()
         }
     }
         window.clear(Color::Black);
+        window.draw(background);
         for(int i= 0;i < amt + 2;i++){
             window.draw(circ[i]);
         }
