@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <stdlib.h>
+#include <sstream>
 
 using namespace std;
 using namespace sf;
@@ -36,18 +37,13 @@ bool keyMenuPressed = false;
 
 CircleShape circ[9999];
 Texture gameTextures[11];
+Font deco;
+Font fu;
 Music music;
 int hitcount[9999],balls,amt;
 float mass[2],force[2],elas[2],grav;
 
 Vector2f acc[2], vel[9999], pos[9999];
-
-int gameState = 1;
-/* the above defines the current game state:
-0 for title screen (unimplemented)
-1 for main game
-2 for finishing screen
-*/
 bool inputEnabled = true;
 
 void playMusic(RenderWindow* window) {
@@ -62,7 +58,7 @@ int main()
     window.setActive(false);
     window.setKeyRepeatEnabled(false);
 
-    // loading textures
+    // loading resources
     cout << "Loading textures..." << endl;
     if (!gameTextures[0].loadFromFile("gfx/bg.png"));
     // 1 -- menubg?
@@ -75,6 +71,9 @@ int main()
     if (!gameTextures[8].loadFromFile("gfx/ball4.png"));
     if (!gameTextures[9].loadFromFile("gfx/ball5.png"));
     if (!gameTextures[10].loadFromFile("gfx/ball6.png"));
+    if (!deco.loadFromFile("font/cdeco.otf"));
+    if (!fu.loadFromFile("font/fu.otf"));
+    // playing music
     Thread t1(&playMusic, &window);
     t1.launch();
     
@@ -288,6 +287,23 @@ window.clear(Color::Black);
     else {
         window.clear(Color::Black);
         window.draw(endBackground);
+        Text youWin;
+        youWin.setFont(deco);
+        youWin.setString("You Win!");
+        youWin.setCharacterSize(160);
+        youWin.setFillColor(sf::Color::Red);
+        youWin.setPosition(310,200);
+        window.draw(youWin);
+        Text hitsTaken;
+        hitsTaken.setFont(fu);
+        std::stringstream ss;
+        ss <<  "You were hit " << hitcount[0] << " times!";
+        string s = ss.str();
+        hitsTaken.setString(s);
+        hitsTaken.setCharacterSize(84);
+        hitsTaken.setFillColor(sf::Color::White);
+        hitsTaken.setPosition(420,400);
+        window.draw(hitsTaken);
     }
         
         window.display();
