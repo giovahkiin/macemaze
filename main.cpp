@@ -42,9 +42,18 @@ float mass[2],force[2],elas[2],grav;
 
 Vector2f acc[2], vel[9999], pos[9999];
 
+int gameState = 1;
+/* the above defines the current game state:
+0 for title screen (unimplemented)
+1 for main game
+2 for finishing screen
+*/
+bool inputEnabled = true;
 
-
-
+void playMusic(RenderWindow* window) {
+    if (!music.openFromFile("music/music.ogg"));
+    music.play();
+}
 
 int main()
 {
@@ -55,9 +64,9 @@ int main()
 
     // loading textures
     cout << "Loading textures..." << endl;
-    if (!gameTextures[0].loadFromFile("gfx/testbgsmall.jpg"));
+    if (!gameTextures[0].loadFromFile("gfx/bg.png"));
     // 1 -- menubg?
-    // 2 -- gameover
+    if (!gameTextures[2].loadFromFile("gfx/finishbg.png"));
     if (!gameTextures[3].loadFromFile("gfx/santa.png"));
     // 4 -- mace
     if (!gameTextures[5].loadFromFile("gfx/ball1.png"));
@@ -66,13 +75,14 @@ int main()
     if (!gameTextures[8].loadFromFile("gfx/ball4.png"));
     if (!gameTextures[9].loadFromFile("gfx/ball5.png"));
     if (!gameTextures[10].loadFromFile("gfx/ball6.png"));
-    if (!music.openFromFile("music/music.ogg"));
-    music.play();
+    Thread t1(&playMusic, &window);
+    t1.launch();
     
 
     for (int i = 0; i < 10; i++) gameTextures[i].setSmooth(true);
 
     sf::Sprite background(gameTextures[0]);
+    sf::Sprite endBackground(gameTextures[2]);
         //input for targets
         cout << "How many targets?" << endl;
         cin >> amt;
@@ -120,6 +130,7 @@ int main()
 
     while (window.isOpen())
     {
+        
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -168,7 +179,9 @@ int main()
             keyMenuPressed = false;
             window.close();
         }
-        //player movement
+
+        if (inputEnabled) {
+            //player movement
         if (keyUpPressed)vel[0].y = -350;
         if (keyDownPressed)vel[0].y = 350;
         if (keyLeftPressed)vel[0].x = -350;
@@ -179,9 +192,7 @@ int main()
 
         circ[0].move(vel[0] * TIMESTEP);
 
-    
-    
-    //mace movement
+        //mace movement
     Vector2f direction = Vector2f( circ[0].getPosition() - circ[1].getPosition()  );
     float magnitude = sqrt((direction.x * direction.x) + (direction.y * direction.y));
     Vector2f unitVector(direction.x / magnitude, direction.y / magnitude);
@@ -190,6 +201,7 @@ int main()
     acc[1].y = unitVector.y * grav * force[1] * mass[1];
     vel[1] = (vel[1] + (acc[1] * TIMESTEP)) - ( ( FRICTION * vel[1] ) / mass[1] );
     circ[1].move((0.5f * acc[1] * TIMESTEP * TIMESTEP) + (vel[1] * TIMESTEP));
+        }
 
     //balls collision detection
     
@@ -233,7 +245,9 @@ int main()
     }
 
     if (balls == 0){
+        music.stop();
         cout << "you win!" << endl;
+        inputEnabled = false;
     }
     
 
@@ -263,12 +277,20 @@ int main()
             circ[i].setPosition( pos[i] );
         }
     }
-        window.clear(Color::Black);
+
+    if (inputEnabled) {
+window.clear(Color::Black);
         window.draw(background);
         for(int i= 0;i < amt + 2;i++){
             window.draw(circ[i]);
         }
-        window.display();
     }
+    else {
+        window.clear(Color::Black);
+        window.draw(endBackground);
+    }
+        
+        window.display();
+        }
     return 0;
 }
