@@ -64,7 +64,7 @@ int main()
     // 1 -- menubg?
     if (!gameTextures[2].loadFromFile("gfx/finishbg.png"));
     if (!gameTextures[3].loadFromFile("gfx/santa.png"));
-    // 4 -- mace
+    if (!gameTextures[4].loadFromFile("gfx/sack.png"));
     if (!gameTextures[5].loadFromFile("gfx/ball1.png"));
     if (!gameTextures[6].loadFromFile("gfx/ball2.png"));
     if (!gameTextures[7].loadFromFile("gfx/ball3.png"));
@@ -120,7 +120,7 @@ int main()
     circ[1].setRadius(MRADIUS);
     circ[1].setOrigin(MRADIUS,MRADIUS);
     circ[1].setPosition(80,550);
-    circ[1].setFillColor(Color::Red);
+    circ[1].setTexture(&gameTextures[4]);
     mass[1] = MMASS;
     force[1] = 800;
     elas[1] = MElas;
